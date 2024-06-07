@@ -17,7 +17,11 @@ impl Window {
         Object::builder().property("application", app).build()
     }
 
-    pub fn button(&self) -> &gtk::Button {
-        &self.imp().button
+    pub fn start_stop_button(&self) -> &gtk::Button {
+        &self.imp().start_stop_button
+    }
+
+    pub fn temp_label(&self) -> &gtk::Label {
+        &self.imp().temp_label
     }
 }

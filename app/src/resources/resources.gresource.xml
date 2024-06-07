@@ -2,5 +2,8 @@
 <gresources>
   <gresource prefix="/">
     <file compressed="true" preprocess="xml-stripblanks">window.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">icons/temperature.svg</file>
+    <file compressed="true" preprocess="xml-stripblanks">icons/pressure.svg</file>
+    <file compressed="true" preprocess="xml-stripblanks">icons/altitude.svg</file>
   </gresource>
 </gresources>

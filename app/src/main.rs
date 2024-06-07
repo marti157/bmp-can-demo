@@ -1,11 +1,12 @@
+mod bmp_can;
+mod can;
 mod window;
 
-use std::thread;
-use std::time::Duration;
-
 use glib::clone;
-use gtk::prelude::*;
-use gtk::{gio, glib, Application};
+use gtk::{gio, glib, prelude::*, Application};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::thread;
 use window::Window;
 
 const APP_ID: &str = "com.marti157.BmpCanDemo";
@@ -17,7 +18,6 @@ fn main() -> glib::ExitCode {
     // Create a new application
     let app = Application::builder().application_id(APP_ID).build();
 
-    // Connect to "activate" signal of `app`
     app.connect_activate(build_ui);
 
     // Run the application
@@ -28,30 +28,47 @@ fn build_ui(app: &Application) {
     // Create window
     let window = Window::new(app);
 
-    // Create channel that can hold at most 1 message at a time
-    let (sender, receiver) = async_channel::bounded(1);
+    // Create a channel for communication between threads
+    let (sender, receiver) = async_channel::unbounded::<String>();
+    let is_running = Arc::new(AtomicBool::new(false));
+    let is_running_clone = is_running.clone();
 
-    window.button().connect_clicked(move |_| {
-        let sender = sender.clone();
-        // The long running operation runs now in a separate thread
-        gio::spawn_blocking(move || {
-            // Deactivate the button until the operation is done
-            sender
-                .send_blocking(false)
-                .expect("The channel needs to be open.");
-            let five_seconds = Duration::from_secs(5);
-            thread::sleep(five_seconds);
-            // Activate the button again
-            sender
-                .send_blocking(true)
-                .expect("The channel needs to be open.");
-        });
-    });
+    // When button is clicked, either stop or run long running BmpCan task
+    window
+        .start_stop_button()
+        .connect_clicked(clone!(@weak window => move |_| {
+            let was_running = is_running_clone.load(Ordering::SeqCst);
+            is_running_clone.store(!was_running, Ordering::SeqCst);
 
-    // The main loop executes the asynchronous block
+            if !was_running {
+                let sender = sender.clone();
+                window.start_stop_button().set_label("Stop");
+
+                // Wasn't running; spawn thread
+                gio::spawn_blocking(clone!(@strong is_running_clone => move || {
+                    is_running_clone.store(true, Ordering::SeqCst);
+
+                    let mut i = 0;
+                    while is_running_clone.load(Ordering::SeqCst) {
+                        // Simulate long running task
+                        thread::sleep(std::time::Duration::from_secs(1));
+                        i += 1;
+
+                        // Send message to the main thread
+                        sender
+                            .send_blocking(format!("Running... {i}"))
+                            .expect("The channel needs to be open.");
+                    }
+                }));
+            } else {
+                // Was running, now stopped
+                window.start_stop_button().set_label("Start");
+            }
+        }));
+
     glib::spawn_future_local(clone!(@weak window => async move {
-        while let Ok(enable_button) = receiver.recv().await {
-            window.button().set_sensitive(enable_button);
+        while let Ok(text) = receiver.recv().await {
+            window.temp_label().set_text(&text);
         }
     }));
 

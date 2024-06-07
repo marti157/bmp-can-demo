@@ -1,13 +1,15 @@
 use glib::subclass::InitializingObject;
 use gtk::subclass::prelude::*;
-use gtk::{glib, Button, CompositeTemplate};
+use gtk::{glib, Button, CompositeTemplate, Label};
 
 // Object holding the state
 #[derive(CompositeTemplate, Default)]
 #[template(resource = "/window.ui")]
 pub struct Window {
     #[template_child]
-    pub button: TemplateChild<Button>,
+    pub start_stop_button: TemplateChild<Button>,
+    #[template_child]
+    pub temp_label: TemplateChild<Label>,
 }
 
 // The central trait for subclassing a GObject
