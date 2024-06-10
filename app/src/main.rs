@@ -2,11 +2,11 @@ mod bmp_can;
 mod can;
 mod window;
 
+use bmp_can::BmpCan;
 use glib::clone;
 use gtk::{gio, glib, prelude::*, Application};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::thread;
 use window::Window;
 
 const APP_ID: &str = "com.marti157.BmpCanDemo";
@@ -46,18 +46,10 @@ fn build_ui(app: &Application) {
 
                 // Wasn't running; spawn thread
                 gio::spawn_blocking(clone!(@strong is_running_clone => move || {
-                    is_running_clone.store(true, Ordering::SeqCst);
-
-                    let mut i = 0;
-                    while is_running_clone.load(Ordering::SeqCst) {
-                        // Simulate long running task
-                        thread::sleep(std::time::Duration::from_secs(1));
-                        i += 1;
-
-                        // Send message to the main thread
-                        sender
-                            .send_blocking(format!("Running... {i}"))
-                            .expect("The channel needs to be open.");
+                    if let Ok(mut bmp_can) = BmpCan::new(sender) {
+                        bmp_can.run(|| {
+                            is_running_clone.load(Ordering::SeqCst)
+                        });
                     }
                 }));
             } else {
@@ -67,8 +59,8 @@ fn build_ui(app: &Application) {
         }));
 
     glib::spawn_future_local(clone!(@weak window => async move {
-        while let Ok(text) = receiver.recv().await {
-            window.temp_label().set_text(&text);
+        while let Ok(data) = receiver.recv().await {
+            window.temp_label().set_text(format!("Data: {}", &data).as_str() );
         }
     }));
 
