@@ -3,7 +3,7 @@
   <template class="MainWindow" parent="GtkApplicationWindow">
     <property name="title">BMP CAN Demo</property>
     <child>
-      <object class="GtkBox" id="main_box">
+      <object class="GtkBox">
         <property name="orientation">vertical</property>
         <property name="spacing">20</property>
         <property name="halign">center</property>
@@ -12,27 +12,70 @@
         <property name="margin-bottom">20</property>
 
         <child>
-          <object class="GtkBox" id="icons_box">
+          <object class="GtkBox">
             <property name="orientation">horizontal</property>
-            <property name="spacing">20</property>
-            <property name="halign">center</property>
-            <property name="valign">center</property>
+            <property name="spacing">30</property>
+
             <child>
-              <object class="GtkImage">
-                <property name="resource">/icons/temperature.svg</property>
-                <property name="pixel-size">64</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
+                <property name="halign">center</property>
+
+                <child>
+                  <object class="GtkImage">
+                    <property name="resource">/icons/temperature.svg</property>
+                    <property name="pixel-size">64</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="temp_label">
+                    <property name="label"></property>
+                  </object>
+                </child>
               </object>
             </child>
+
             <child>
-              <object class="GtkImage">
-                <property name="resource">/icons/pressure.svg</property>
-                <property name="pixel-size">64</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
+                <property name="halign">center</property>
+
+                <child>
+                  <object class="GtkImage">
+                    <property name="resource">/icons/pressure.svg</property>
+                    <property name="pixel-size">64</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="pres_label">
+                    <property name="label"></property>
+                  </object>
+                </child>
               </object>
             </child>
+
             <child>
-              <object class="GtkImage">
-                <property name="resource">/icons/altitude.svg</property>
-                <property name="pixel-size">64</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="spacing">10</property>
+                <property name="halign">center</property>
+
+                <child>
+                  <object class="GtkImage">
+                    <property name="resource">/icons/altitude.svg</property>
+                    <property name="pixel-size">64</property>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="GtkLabel" id="alt_label">
+                    <property name="label"></property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -44,8 +87,8 @@
           </object>
         </child>
         <child>
-          <object class="GtkLabel" id="temp_label">
-            <property name="label">?</property>
+          <object class="GtkLabel" id="status_label">
+            <property name="label">Ready</property>
           </object>
         </child>
       </object>

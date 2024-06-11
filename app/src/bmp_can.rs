@@ -6,34 +6,33 @@ const TEMP_FRAME_ID: u32 = 0x317;
 const PRES_FRAME_ID: u32 = 0x318;
 const ALT_FRAME_ID: u32 = 0x319;
 
-#[derive(Default)]
+#[derive(Clone, Default)]
 pub struct SensorData {
-    temperature: f32,
-    pressure: i32,
-    altitude: f32,
+    pub temperature: f32,
+    pub pressure: i32,
+    pub altitude: f32,
 }
 
 pub struct BmpCan {
-    sender: Sender<String>,
+    sender: Sender<SensorData>,
     can: CanReceiver,
     sensor_data: SensorData,
 }
 
 impl BmpCan {
-    pub fn new(sender: Sender<String>) -> Result<Self, CanError> {
-        match CanReceiver::new("can0") {
-            Ok(can) => Ok(BmpCan {
-                sender,
-                can,
-                sensor_data: SensorData::default(),
-            }),
-            Err(error) => {
-                sender
-                    .send_blocking(format!("{error}"))
-                    .expect("The channel needs to be open.");
-                Err(error)
-            }
-        }
+    fn update_main(&self) {
+        self.sender
+            .send_blocking(self.sensor_data.clone())
+            .expect("Data channel must be open.");
+    }
+
+    pub fn new(sender: Sender<SensorData>) -> Result<Self, CanError> {
+        let can = CanReceiver::new("can0")?;
+        Ok(BmpCan {
+            sender,
+            can,
+            sensor_data: SensorData::default(),
+        })
     }
 
     pub fn run<F>(&mut self, should_keep_running: F)
@@ -44,12 +43,23 @@ impl BmpCan {
             let frame = self.can.receive_blocking();
             println!("{}", frame_to_string(&frame));
 
-            if frame.raw_id() == TEMP_FRAME_ID {
-                self.sensor_data.temperature = postcard::from_bytes::<f32>(frame.data()).unwrap();
-                self.sender
-                    .send_blocking("got value".to_string())
-                    .expect("The channel needs to be open.");
+            match frame.raw_id() {
+                TEMP_FRAME_ID => {
+                    self.sensor_data.temperature =
+                        postcard::from_bytes::<f32>(frame.data()).unwrap()
+                }
+                PRES_FRAME_ID => {
+                    self.sensor_data.pressure = postcard::from_bytes::<i32>(frame.data()).unwrap()
+                }
+                ALT_FRAME_ID => {
+                    self.sensor_data.altitude = postcard::from_bytes::<f32>(frame.data()).unwrap()
+                }
+                unmatched_id => {
+                    println!("bmp_can: Unexpected CAN frame identifier: {unmatched_id}")
+                }
             }
+
+            self.update_main();
         }
     }
 }

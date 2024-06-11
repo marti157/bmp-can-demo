@@ -10,6 +10,12 @@ pub struct Window {
     pub start_stop_button: TemplateChild<Button>,
     #[template_child]
     pub temp_label: TemplateChild<Label>,
+    #[template_child]
+    pub pres_label: TemplateChild<Label>,
+    #[template_child]
+    pub alt_label: TemplateChild<Label>,
+    #[template_child]
+    pub status_label: TemplateChild<Label>,
 }
 
 // The central trait for subclassing a GObject

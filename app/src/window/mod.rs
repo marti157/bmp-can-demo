@@ -24,4 +24,16 @@ impl Window {
     pub fn temp_label(&self) -> &gtk::Label {
         &self.imp().temp_label
     }
+
+    pub fn pres_label(&self) -> &gtk::Label {
+        &self.imp().pres_label
+    }
+
+    pub fn alt_label(&self) -> &gtk::Label {
+        &self.imp().alt_label
+    }
+
+    pub fn status_label(&self) -> &gtk::Label {
+        &self.imp().status_label
+    }
 }
