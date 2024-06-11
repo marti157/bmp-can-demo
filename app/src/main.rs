@@ -65,9 +65,9 @@ fn build_ui(app: &Application) {
 
     glib::spawn_future_local(clone!(@weak window => async move {
         while let Ok(data) = data_receiver.recv().await {
-            window.temp_label().set_text(format!("{} ºC", data.temperature).as_str());
+            window.temp_label().set_text(format!("{:.2} ºC", data.temperature).as_str());
             window.pres_label().set_text(format!("{} Pa", data.pressure).as_str());
-            window.alt_label().set_text(format!("{} m", data.altitude).as_str());
+            window.alt_label().set_text(format!("{:.2} m", data.altitude).as_str());
         }
     }));
 
